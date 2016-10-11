@@ -131,4 +131,11 @@ public class Graph : MonoBehaviour {
             i++;
         }
     }
+
+    public void UpdateDepth(float depth) {
+        for (int i = 0; i < LinePoints.Count; i++)
+        {
+            LinePoints[i] = new Vector3(LinePoints[i].x, LinePoints[i].y, depth);
+        }
+    }
 }

@@ -15,6 +15,7 @@ public class GraphController : MonoBehaviour {
         public Texture dotTexture;
         public float dotRadius;
         public List<Vector3> lineData = new List<Vector3>();
+        public float lineDepth;
     }
 
     [Header("Line Settings")]
@@ -58,6 +59,7 @@ public class GraphController : MonoBehaviour {
             goList[i].GetComponent<Graph>().pointMat.color = lineCount[i].lineColor;
             Vector3[] positions = lineCount[i].lineData.ToArray();
             goList[i].GetComponent<Graph>().line.SetPositions(positions);
+            goList[i].GetComponent<Graph>().UpdateDepth(lineCount[i].lineDepth);
         }
     }
 }
