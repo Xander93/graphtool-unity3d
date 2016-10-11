@@ -13,6 +13,7 @@ public class GraphController : MonoBehaviour {
         public Color lineColor;
         public float lineWidth = 2.0f;
         public Texture dotTexture;
+        public float dotRadius;
         public List<Vector3> lineData = new List<Vector3>();
     }
 
@@ -38,6 +39,7 @@ public class GraphController : MonoBehaviour {
             goGraph.lineColor = lineCount[i].lineColor;
             goGraph.lineWidth = lineCount[i].lineWidth;
             goGraph.dotTexture = lineCount[i].dotTexture;
+            goGraph.dotRadius = lineCount[i].dotRadius;
         }
 	}
 }

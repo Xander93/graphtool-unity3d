@@ -9,6 +9,7 @@ public class Graph : MonoBehaviour {
     public Color lineColor;
     public float lineWidth;
     public Texture dotTexture;
+    public float dotRadius;
 
     private LineRenderer line;
 
@@ -43,10 +44,10 @@ public class Graph : MonoBehaviour {
         {
             if (LinePoints[i].y > 0)
             {
-                LinePoints[i] = new Vector3(LinePoints[i].x, (LinePoints[i].y / maxY) * cameraSize, LinePoints[i].z);
+                LinePoints[i] = new Vector3(LinePoints[i].x, (LinePoints[i].y / maxY) * cameraSize - (dotRadius * 0.5f), LinePoints[i].z);
             } else if (LinePoints[i].y < 0)
             {
-                LinePoints[i] = new Vector3(LinePoints[i].x, (LinePoints[i].y / minY) * -cameraSize, LinePoints[i].z);
+                LinePoints[i] = new Vector3(LinePoints[i].x, (LinePoints[i].y / minY) * -cameraSize + (dotRadius * 0.5f), LinePoints[i].z);
             }
         }
 
@@ -54,7 +55,7 @@ public class Graph : MonoBehaviour {
 
         if (dotTexture)
         {
-            DrawDots(lineWidth);
+            DrawDots(dotRadius);
         }
     }
 
@@ -92,7 +93,7 @@ public class Graph : MonoBehaviour {
         return minY;
     }
 
-    void DrawDots(float scaleMultiplier)
+    void DrawDots(float scale)
     {
         foreach (var item in LinePoints)
         {
@@ -104,7 +105,7 @@ public class Graph : MonoBehaviour {
             linePointGo.transform.position = item + new Vector3(0, 0, -0.25f);
             linePointGo.layer = 8;
             linePointGo.name = "Dot" + item.ToString();
-            linePointGo.transform.localScale = new Vector3(7 * scaleMultiplier, 7 * scaleMultiplier, 7 * scaleMultiplier);
+            linePointGo.transform.localScale = new Vector3(scale, scale, scale);
             linePointGo.transform.SetParent(this.transform);
         }
     }
