@@ -22,10 +22,16 @@ public class GraphController : MonoBehaviour {
 
     [Header("Camera Settings")]
     public Camera renderCamera;
+
     private float cameraSize;
+    private List<GameObject> goList = new List<GameObject>();
 
     void Start () {
-		CreateGraphLines (lineCount.Count);
+		CreateGraphLines(lineCount.Count);
+    }
+
+    void Update() {
+        UpdateGraphLines(goList.Count);
     }
 
 	void CreateGraphLines(int count) {
@@ -36,10 +42,22 @@ public class GraphController : MonoBehaviour {
             go.AddComponent<Graph> ();
             Graph goGraph = go.GetComponent<Graph> ();
             goGraph.LinePoints = lineCount[i].lineData;
-            goGraph.lineColor = lineCount[i].lineColor;
+            goGraph.material.color = lineCount[i].lineColor;
             goGraph.lineWidth = lineCount[i].lineWidth;
             goGraph.dotTexture = lineCount[i].dotTexture;
             goGraph.dotRadius = lineCount[i].dotRadius;
+            goList.Add(go);
         }
 	}
+
+    void UpdateGraphLines(int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            goList[i].GetComponent<Graph>().material.color = lineCount[i].lineColor;
+            goList[i].GetComponent<Graph>().pointMat.color = lineCount[i].lineColor;
+            Vector3[] positions = lineCount[i].lineData.ToArray();
+            goList[i].GetComponent<Graph>().line.SetPositions(positions);
+        }
+    }
 }
