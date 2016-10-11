@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class Graph : MonoBehaviour {
 
@@ -33,11 +34,19 @@ public class Graph : MonoBehaviour {
         GraphController gControl = GameObject.Find("GraphController").GetComponent<GraphController>();
         float cameraSize = gControl.renderCamera.orthographicSize;
 
+        float maxY = FindMaxY(LinePoints);
+        float minY = FindMinY(LinePoints);
+        Debug.Log(maxY);
+        Debug.Log(minY);
+
         for (int i = 0; i < LinePoints.Count; i++)
         {
             if (LinePoints[i].y > 0)
             {
-                LinePoints[i] = new Vector3(LinePoints[i].x, (LinePoints[i].y / 100) * cameraSize, LinePoints[i].z);
+                LinePoints[i] = new Vector3(LinePoints[i].x, (LinePoints[i].y / maxY) * cameraSize, LinePoints[i].z);
+            } else if (LinePoints[i].y < 0)
+            {
+                LinePoints[i] = new Vector3(LinePoints[i].x, (LinePoints[i].y / minY) * -cameraSize, LinePoints[i].z);
             }
         }
 
@@ -47,6 +56,40 @@ public class Graph : MonoBehaviour {
         {
             DrawDots(lineWidth);
         }
+    }
+
+    public float FindMaxY(List<Vector3> list)
+    {
+        if (list.Count == 0)
+        {
+            throw new InvalidOperationException("Empty list");
+        }
+        float maxY = float.MinValue;
+        foreach (Vector3 type in list)
+        {
+            if (type.y > maxY)
+            {
+                maxY = type.y;
+            }
+        }
+        return maxY;
+    }
+
+    public float FindMinY(List<Vector3> list)
+    {
+        if (list.Count == 0)
+        {
+            throw new InvalidOperationException("Empty list");
+        }
+        float minY = float.MaxValue;
+        foreach (Vector3 type in list)
+        {
+            if (type.y < minY)
+            {
+                minY = type.y;
+            }
+        }
+        return minY;
     }
 
     void DrawDots(float scaleMultiplier)
