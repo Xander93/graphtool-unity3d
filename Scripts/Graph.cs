@@ -3,76 +3,168 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public class Graph : MonoBehaviour {
+public class Graph : MonoBehaviour
+{
 
-    public List<Vector3> LinePoints = new List<Vector3>();
-    public List<GameObject> LineDots = new List<GameObject>();
-    public float lineWidth;
-    public Texture dotTexture;
-    public float dotRadius;
-    public Material material;
-    public Material pointMat;
-    public LineRenderer line;
+    private List<Vector3> _linepoints = new List<Vector3>();
+    public List<Vector3> LinePoints
+    {
+        get
+        {
+            return _linepoints;
+        }
+        set
+        {
+            _linepoints = value;
+            UpdateLine();
+            UpdateDots();
+        }
+    }
 
+    private float _linewidth;
+    public float LineWidth
+    {
+        get
+        {
+            return _linewidth;
+        }
+        set
+        {
+            _linewidth = value;
+            UpdateLine();
+        }
+    }
+
+    [SerializeField]
+    private Color _color;
+    public Color Color
+    {
+        get
+        {
+            return _color;
+        }
+        set
+        {
+            _color = value;
+            UpdateDots();
+            UpdateLine();
+        }
+    }
+
+    private float _dotradius;
+    public float DotRadius
+    {
+        get
+        {
+            return _dotradius;
+        }
+        set
+        {
+            _dotradius = value;
+            UpdateDots();
+            Debug.Log("Dot Updated!");
+        }
+    }
+
+    private Texture _dotTexture;
+    public Texture DotTexture
+    {
+        get
+        {
+            return _dotTexture;
+        }
+        set
+        {
+            _dotTexture = value;
+            UpdateDots();
+            Debug.Log("Dot Updated!");
+        }
+    }
+
+    private LineRenderer line;
     private GraphController gControl;
+    private Material lineMat;
+    private Material dotMat;
+    private List<GameObject> LineDots = new List<GameObject>();
 
     // Use this for initialization
-    void Awake () {
-        material = new Material(Shader.Find("VertexLit"));
-        this.gameObject.layer = 8;
-        this.gameObject.AddComponent<LineRenderer> ();
-        line = this.gameObject.GetComponent<LineRenderer>();
+    void Awake()
+    {
         gControl = GameObject.Find("GraphController").GetComponent<GraphController>();
-        pointMat = new Material(Shader.Find("Sprites/Default"));
+        lineMat = new Material(Shader.Find("VertexLit"));
+        dotMat = new Material(Shader.Find("Sprites/Default"));
+        this.gameObject.layer = 8;
+        this.gameObject.AddComponent<LineRenderer>();
+        line = this.gameObject.GetComponent<LineRenderer>();
     }
 
-    void Start ()
+    void Start()
     {
         DrawLine();
-    }
-
-    void Update() {
+        UpdateLine();
+        DrawDots();
         UpdateDots();
     }
 
     void DrawLine()
     {
-        line.numPositions = LinePoints.Count;
-        line.widthMultiplier = lineWidth;
-        line.material = material;
+        line.numPositions = _linepoints.Count;
         float cameraSize = gControl.renderCamera.orthographicSize;
 
-        float maxY = FindMaxY(LinePoints);
-        float minY = FindMinY(LinePoints);
-        float offset;
+        float maxY = FindMaxY(_linepoints);
+        float minY = FindMinY(_linepoints);
+        float offset = 20f;
 
-        if (dotTexture) {
-            offset = dotRadius * 0.5f;
-        }
-        else {
-            offset = lineWidth;
-        }
-
-        for (int i = 0; i < LinePoints.Count; i++)
+        if (_dotTexture)
         {
-            if (LinePoints[i].y > 0)
+            offset = _dotradius * offset;
+        }
+        else
+        {
+            offset = _linewidth * offset;
+        }
+
+        /*for (int i = 0; i < _linepoints.Count; i++)
+        {
+            if (_linepoints[i].y > 0)
             {
-                LinePoints[i] = new Vector3(LinePoints[i].x, (LinePoints[i].y / maxY) * cameraSize - offset, LinePoints[i].z);
-            } else if (LinePoints[i].y < 0)
+                _linepoints[i] = new Vector3(_linepoints[i].x, (_linepoints[i].y / maxY) * cameraSize - offset, _linepoints[i].z);
+            }
+            else if (_linepoints[i].y < 0)
             {
-                LinePoints[i] = new Vector3(LinePoints[i].x, (LinePoints[i].y / minY) * -cameraSize + offset, LinePoints[i].z);
+                _linepoints[i] = new Vector3(_linepoints[i].x, (_linepoints[i].y / minY) * -cameraSize + offset, _linepoints[i].z);
+            }
+        }*/
+
+        line.SetPositions(_linepoints.ToArray());        
+    }
+
+    void UpdateLine() {
+        if (lineMat.color != _color)
+        {
+            lineMat.color = _color;
+            line.material = lineMat;
+        }
+        if (line.widthMultiplier != _linewidth)
+            line.widthMultiplier = _linewidth;
+
+        if (!_dotTexture)
+        {
+            foreach (var item in LineDots)
+            {
+                item.SetActive(false);
+            }
+        } else {
+            foreach (var item in LineDots)
+            {
+                item.SetActive(true);
             }
         }
 
-        line.SetPositions(LinePoints.ToArray());
-
-        if (dotTexture)
-        {
-            DrawDots(dotRadius);
-        }
+        line.SetPositions(_linepoints.ToArray());
     }
 
-    public float FindMaxY(List<Vector3> list)
+    private float FindMaxY(List<Vector3> list)
     {
         if (list.Count == 0)
         {
@@ -89,7 +181,7 @@ public class Graph : MonoBehaviour {
         return maxY;
     }
 
-    public float FindMinY(List<Vector3> list)
+    private float FindMinY(List<Vector3> list)
     {
         if (list.Count == 0)
         {
@@ -106,36 +198,33 @@ public class Graph : MonoBehaviour {
         return minY;
     }
 
-    void DrawDots(float scale)
+    void DrawDots()
     {
-        foreach (var item in LinePoints)
+        foreach (var item in _linepoints)
         {
             GameObject linePointGo = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            pointMat.mainTexture = dotTexture;
-            pointMat.color = material.color;
-            linePointGo.GetComponent<MeshRenderer>().material = pointMat;
-            linePointGo.transform.position = item + new Vector3(0, 0, -0.25f);
+            dotMat.mainTexture = _dotTexture;
+            dotMat.color = lineMat.color;
+            linePointGo.GetComponent<MeshRenderer>().material = dotMat;
             linePointGo.layer = 8;
             linePointGo.name = "Dot";
-            linePointGo.transform.localScale = new Vector3(scale, scale, scale);
             linePointGo.transform.SetParent(this.transform);
             LineDots.Add(linePointGo);
         }
     }
 
-    void UpdateDots() {
-        int i = 0;
-        foreach (var item in LineDots)
+    void UpdateDots()
+    {
+        for (int i = 0; i < LineDots.Count; i++)
         {
-            item.transform.position = LinePoints[i];
-            i++;
-        }
-    }
-
-    public void UpdateDepth(float depth) {
-        for (int i = 0; i < LinePoints.Count; i++)
-        {
-            LinePoints[i] = new Vector3(LinePoints[i].x, LinePoints[i].y, depth);
+            if (LineDots[i].transform.position != _linepoints[i] + new Vector3(0, 0, -0.50f))
+                LineDots[i].transform.position = _linepoints[i] + new Vector3(0, 0, -0.50f);
+            if (LineDots[i].transform.localScale != new Vector3(DotRadius, DotRadius, DotRadius))
+                LineDots[i].transform.localScale = new Vector3(DotRadius, DotRadius, DotRadius);
+            if (LineDots[i].GetComponent<MeshRenderer>().material.mainTexture != _dotTexture)
+                LineDots[i].GetComponent<MeshRenderer>().material.mainTexture = _dotTexture;
+            if (LineDots[i].GetComponent<MeshRenderer>().material.color != _color)
+                LineDots[i].GetComponent<MeshRenderer>().material.color = _color;
         }
     }
 }

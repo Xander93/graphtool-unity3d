@@ -4,6 +4,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class GraphController : MonoBehaviour {
 
     [System.Serializable]
@@ -14,52 +15,100 @@ public class GraphController : MonoBehaviour {
         public float lineWidth = 2.0f;
         public Texture dotTexture;
         public float dotRadius;
+        public TextAsset textData;
         public List<Vector3> lineData = new List<Vector3>();
-        public float lineDepth;
     }
 
     [Header("Line Settings")]
     public List<ListWrapper> lineCount = new List<ListWrapper>();
-
     [Header("Camera Settings")]
     public Camera renderCamera;
-
     private float cameraSize;
-    private List<GameObject> goList = new List<GameObject>();
+    private List<Graph> goList = new List<Graph>();
 
-    void Start () {
-		CreateGraphLines(lineCount.Count);
+    void Awake ()
+    {
+        lineDataUpdate();
+        CreateGraphs(lineCount.Count);
+        UpdateGraphs();
     }
 
-    void Update() {
-        UpdateGraphLines(goList.Count);
-    }
-
-	void CreateGraphLines(int count) {
-		for (int i = 0; i < count; i++) {
-			GameObject go = new GameObject ();
-            go.transform.SetParent(this.transform);
-            go.name = "Line" + lineCount[i].lineName;
-            go.AddComponent<Graph> ();
-            Graph goGraph = go.GetComponent<Graph> ();
-            goGraph.LinePoints = lineCount[i].lineData;
-            goGraph.material.color = lineCount[i].lineColor;
-            goGraph.lineWidth = lineCount[i].lineWidth;
-            goGraph.dotTexture = lineCount[i].dotTexture;
-            goGraph.dotRadius = lineCount[i].dotRadius;
-            goList.Add(go);
-        }
-	}
-
-    void UpdateGraphLines(int count)
+    void CreateGraphs(int count)
     {
         for (int i = 0; i < count; i++)
         {
-            goList[i].GetComponent<Graph>().material.color = lineCount[i].lineColor;
-            goList[i].GetComponent<Graph>().pointMat.color = lineCount[i].lineColor;
-            Vector3[] positions = lineCount[i].lineData.ToArray();
-            goList[i].GetComponent<Graph>().line.SetPositions(positions);
-            goList[i].GetComponent<Graph>().UpdateDepth(lineCount[i].lineDepth);
+            GameObject go = new GameObject();
+            go.transform.SetParent(this.transform);
+            go.name = "Line" + lineCount[i].lineName;
+            go.AddComponent<Graph>();
+            Graph goGraph = go.GetComponent<Graph>();
+            goGraph.GetComponent<LineRenderer>().SetPositions(lineCount[i].lineData.ToArray());
+            goList.Add(goGraph);
         }
+    }
+
+    void Update ()
+    {
+        UpdateGraphs();
+        lineDataUpdate();
+    }
+
+    void UpdateGraphs()
+    {
+        for (int i = 0; i < lineCount.Count; i++)
+        {
+            goList[i].LinePoints = lineCount[i].lineData;
+
+            if (lineCount[i].lineWidth != goList[i].LineWidth)
+                goList[i].LineWidth = lineCount[i].lineWidth;
+            if (lineCount[i].lineColor != goList[i].Color)
+                goList[i].Color = lineCount[i].lineColor;
+            if (lineCount[i].dotTexture != goList[i].DotTexture)
+                goList[i].DotTexture = lineCount[i].dotTexture;
+            if (lineCount[i].dotRadius != goList[i].DotRadius)
+                goList[i].DotRadius = lineCount[i].dotRadius;
+        }
+    }
+
+    private void lineDataUpdate()
+    {
+        bool textData = false;
+        //Start line position with or withouth a text file
+        for (int i = 0; i < lineCount.Count; i++)
+        {
+            if (textData == false)
+            {
+                for (int x = 0; x < lineCount[i].lineData.Count; x++)
+                {
+                    if (lineCount[i].textData)
+                    {
+                        List<double> newYlist = TextSeperator(lineCount[i].textData);
+                        float value = (float)newYlist[x];
+                        lineCount[i].lineData[x] = new Vector3(lineCount[i].lineData[x].x, value, lineCount[i].lineData[x].z);
+                        textData = true;
+                    }
+                    lineCount[i].lineData[x] = new Vector3(25 * x, lineCount[i].lineData[x].y, lineCount[i].lineData[x].z);
+                }
+            }else if (!lineCount[i].textData)
+            {
+                textData = false;
+            }
+        }
+    }
+
+    private List<double> TextSeperator(TextAsset textAsset)
+    {
+        string text = textAsset.ToString();
+        List<double> stringList = new List<double>();
+        char[] separatingChars = { ',', ' ' };
+
+        string[] words = text.Split(separatingChars, System.StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (string s in words)
+        {
+            stringList.Add(double.Parse(s));
+        }
+
+        return stringList;
     }
 }
