@@ -11,11 +11,12 @@ public class GraphController : MonoBehaviour {
     {
         public string lineName;
         public Color lineColor;
-        public float lineWidth = 2.0f;
+        public float lineWidth;
         public Texture dotTexture;
         public float dotRadius;
         public TextAsset textData;
-        public List<Vector3> lineData = new List<Vector3>();
+        public List<Vector3> lineData = new List<Vector3>(1000);
+        public float lineDepth;
         [HideInInspector] public bool textDataAvailable = false;
         [HideInInspector] public TextAsset tempTextData;
     }
@@ -26,32 +27,48 @@ public class GraphController : MonoBehaviour {
     public Camera renderCamera;
     private float cameraSize;
     private List<Graph> goList = new List<Graph>();
+    private int tempLineCount;
 
     void Awake ()
     {
-        lineDataUpdate();
         CreateGraphs(lineCount.Count);
+        lineDataUpdate();
+        UpdateGraphs();
+    }
+
+    void Update()
+    {
+        CreateGraphs(lineCount.Count);
+        lineDataUpdate();
         UpdateGraphs();
     }
 
     void CreateGraphs(int count)
     {
-        for (int i = 0; i < count; i++)
+        if (count > tempLineCount)
         {
-            GameObject go = new GameObject();
-            go.transform.SetParent(this.transform);
-            go.name = "Line" + lineCount[i].lineName;
-            go.AddComponent<Graph>();
-            Graph goGraph = go.GetComponent<Graph>();
-            goGraph.GetComponent<LineRenderer>().SetPositions(lineCount[i].lineData.ToArray());
-            goList.Add(goGraph);
+            int diffrence = count - tempLineCount;
+            for (int i = 0; i < diffrence; i++)
+            {
+                GameObject go = new GameObject();
+                go.transform.SetParent(this.transform);
+                go.name = "Line: " + lineCount[i].lineName;
+                go.AddComponent<Graph>();
+                Graph goGraph = go.GetComponent<Graph>();
+                goGraph.GetComponent<LineRenderer>().SetPositions(lineCount[i].lineData.ToArray());
+                goList.Add(goGraph);
+            }
+            tempLineCount = count;
         }
-    }
-
-    void Update ()
-    {
-        UpdateGraphs();
-        lineDataUpdate();
+        else if(count < tempLineCount) {
+            int diffrence = tempLineCount - count;
+            for (int i = 0; i < diffrence; i++)
+            {
+                Destroy(goList[goList.Count - 1].gameObject);
+                goList.RemoveAt(goList.Count - 1);
+            }
+            tempLineCount = count;
+        }
     }
 
     void UpdateGraphs()
@@ -59,6 +76,8 @@ public class GraphController : MonoBehaviour {
         for (int i = 0; i < lineCount.Count; i++)
         {
             goList[i].LinePoints = lineCount[i].lineData;
+
+            lineCount[i].lineWidth = (lineCount[i].lineWidth == 0) ? 2.0f : lineCount[i].lineWidth;
 
             if (lineCount[i].lineWidth != goList[i].LineWidth)
                 goList[i].LineWidth = lineCount[i].lineWidth;
@@ -68,6 +87,8 @@ public class GraphController : MonoBehaviour {
                 goList[i].DotTexture = lineCount[i].dotTexture;
             if (lineCount[i].dotRadius != goList[i].DotRadius)
                 goList[i].DotRadius = lineCount[i].dotRadius;
+            if (lineCount[i].lineDepth != goList[i].GraphDepth)
+                goList[i].GraphDepth = lineCount[i].lineDepth;
         }
     }
 
@@ -82,9 +103,10 @@ public class GraphController : MonoBehaviour {
                 {
                     if (lineCount[i].textData)
                     {
-                        List<double> newYlist = TextSeperator(lineCount[i].textData);
-                        float value = (float)newYlist[x];
-                        lineCount[i].lineData[x] = new Vector3(lineCount[i].lineData[x].x, value, lineCount[i].lineData[x].z);
+                        List<double> newlist = TextSeperator(lineCount[i].textData);
+                        float valueY = (float)newlist[x];
+                        float valueX = (float)newlist[x];
+                        lineCount[i].lineData[x] = new Vector3(lineCount[i].lineData[x].x, valueY, lineCount[i].lineData[x].z);
                         lineCount[i].tempTextData = lineCount[i].textData;
                         lineCount[i].textDataAvailable = true;
                     }

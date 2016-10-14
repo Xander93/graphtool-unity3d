@@ -81,6 +81,20 @@ public class Graph : MonoBehaviour
         }
     }
 
+    private float _graphDepth;
+    public float GraphDepth
+    {
+        get
+        {
+            return _graphDepth;
+        }
+        set
+        {
+            UpdateGraphDepth();
+            _graphDepth = value;
+        }
+    }
+
     private LineRenderer line;
     private GraphController gControl;
     private Material lineMat;
@@ -111,7 +125,7 @@ public class Graph : MonoBehaviour
         line.numPositions = _linepoints.Count;
         float cameraSize = gControl.renderCamera.orthographicSize;
 
-        float maxY = FindMaxY(_linepoints);
+        /*float maxY = FindMaxY(_linepoints);
         float minY = FindMinY(_linepoints);
         float offset = 20f;
 
@@ -124,7 +138,7 @@ public class Graph : MonoBehaviour
             offset = _linewidth * offset;
         }
 
-        /*for (int i = 0; i < _linepoints.Count; i++)
+        for (int i = 0; i < _linepoints.Count; i++)
         {
             if (_linepoints[i].y > 0)
             {
@@ -225,6 +239,13 @@ public class Graph : MonoBehaviour
                 LineDots[i].GetComponent<MeshRenderer>().material.mainTexture = _dotTexture;
             if (LineDots[i].GetComponent<MeshRenderer>().material.color != _color)
                 LineDots[i].GetComponent<MeshRenderer>().material.color = _color;
+        }
+    }
+
+   void UpdateGraphDepth() {
+        for (int i = 0; i < _linepoints.Count; i++)
+        {
+            _linepoints[i] = new Vector3(_linepoints[i].x, _linepoints[i].y, _graphDepth);
         }
     }
 }
