@@ -4,7 +4,6 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-
 public class GraphController : MonoBehaviour {
 
     [System.Serializable]
@@ -17,6 +16,8 @@ public class GraphController : MonoBehaviour {
         public float dotRadius;
         public TextAsset textData;
         public List<Vector3> lineData = new List<Vector3>();
+        [HideInInspector] public bool textDataAvailable = false;
+        [HideInInspector] public TextAsset tempTextData;
     }
 
     [Header("Line Settings")]
@@ -72,11 +73,10 @@ public class GraphController : MonoBehaviour {
 
     private void lineDataUpdate()
     {
-        bool textData = false;
         //Start line position with or withouth a text file
         for (int i = 0; i < lineCount.Count; i++)
         {
-            if (textData == false)
+            if (lineCount[i].textDataAvailable == false)
             {
                 for (int x = 0; x < lineCount[i].lineData.Count; x++)
                 {
@@ -85,13 +85,14 @@ public class GraphController : MonoBehaviour {
                         List<double> newYlist = TextSeperator(lineCount[i].textData);
                         float value = (float)newYlist[x];
                         lineCount[i].lineData[x] = new Vector3(lineCount[i].lineData[x].x, value, lineCount[i].lineData[x].z);
-                        textData = true;
+                        lineCount[i].tempTextData = lineCount[i].textData;
+                        lineCount[i].textDataAvailable = true;
                     }
                     lineCount[i].lineData[x] = new Vector3(25 * x, lineCount[i].lineData[x].y, lineCount[i].lineData[x].z);
                 }
-            }else if (!lineCount[i].textData)
+            }else if (!lineCount[i].textData || lineCount[i].textData != lineCount[i].tempTextData)
             {
-                textData = false;
+                lineCount[i].textDataAvailable = false;
             }
         }
     }
