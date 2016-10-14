@@ -15,7 +15,7 @@ public class GraphController : MonoBehaviour {
         public Texture dotTexture;
         public float dotRadius;
         public TextAsset textData;
-        public List<Vector3> lineData = new List<Vector3>(1000);
+        public List<Vector3> lineData = new List<Vector3>();
         public float lineDepth;
         [HideInInspector] public bool textDataAvailable = false;
         [HideInInspector] public TextAsset tempTextData;
@@ -56,6 +56,7 @@ public class GraphController : MonoBehaviour {
                 go.AddComponent<Graph>();
                 Graph goGraph = go.GetComponent<Graph>();
                 goGraph.GetComponent<LineRenderer>().SetPositions(lineCount[i].lineData.ToArray());
+                lineCount[i].lineData.AddRange(new Vector3[1000]);
                 goList.Add(goGraph);
             }
             tempLineCount = count;
