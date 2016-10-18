@@ -1,10 +1,24 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
-public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler {
+public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
+{
 
-    public void OnPointerEnter(PointerEventData eventData) {
+    public List<GameObject> goList = new List<GameObject>();
+
+    void Start()
+    {
+        foreach (Transform child in transform)
+        {
+            goList.Add(child.gameObject);
+        }
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
 
         if (eventData.pointerDrag == null)
             return;
@@ -16,7 +30,8 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
         }
     }
 
-    public void OnPointerExit(PointerEventData eventData) {
+    public void OnPointerExit(PointerEventData eventData)
+    {
 
         if (eventData.pointerDrag == null)
             return;
@@ -28,11 +43,13 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
         }
     }
 
-    public void OnDrop(PointerEventData eventData) {
-        Debug.Log(eventData.pointerDrag.name + " dropped on " + gameObject.name);
-
+    public virtual void OnDrop(PointerEventData eventData)
+    {
         Draggable d = eventData.pointerDrag.GetComponent<Draggable>();
-        if (d != null) {
+        if (d != null)
+        {
+            goList.Add(d.gameObject);
+            d.parentToReturnTo.GetComponent<DropZone>().goList.Remove(d.gameObject);
             d.parentToReturnTo = this.transform;
         }
     }
