@@ -110,6 +110,8 @@ public class Graph : MonoBehaviour
         this.gameObject.layer = 8;
         this.gameObject.AddComponent<LineRenderer>();
         line = this.gameObject.GetComponent<LineRenderer>();
+        line.receiveShadows = false;
+        line.shadowCastingMode = 0;
     }
 
     void Start()

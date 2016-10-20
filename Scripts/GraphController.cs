@@ -8,15 +8,17 @@ public class GraphController : MonoBehaviour {
 
     [Header("Drag And Drop Connection")]
     public DropZone DropZone;
-    public int Drops;
+    private List<GameObject> tempDropZoneItems = new List<GameObject>();
 
     [System.Serializable]
     public class ListWrapper
     {
         public string lineName;
         public Color lineColor;
-        public float lineWidth;
+        [Range(0, 10)]
+        public float lineWidth = 2f;
         public Texture dotTexture;
+        [Range(0, 50)]
         public float dotRadius;
         public TextAsset textData;
         public List<Vector3> lineData = new List<Vector3>();
@@ -40,29 +42,31 @@ public class GraphController : MonoBehaviour {
         UpdateGraphs();
         lineDataUpdate();
         if (DropZone)
-        {
             DragAndDrop();
-        }
     }
 
-    void DragAndDrop()
-    {
-        if (Drops < DropZone.goList.Count)
+    void DragAndDrop() {
+
+        for (int i = 0; i < DropZone.goList.Count; i++)
         {
-            for (; Drops < DropZone.goList.Count; Drops++)
+            if (!tempDropZoneItems.Contains(DropZone.goList[i]))
             {
+                tempDropZoneItems.Add(DropZone.goList[i]);
                 ListWrapper line = new ListWrapper();
-                line.lineColor = DropZone.goList[Drops].GetComponent<Image>().color;
-                if (DropZone.goList[Drops].GetComponent<CardController>().textData)
-                {
-                    line.textData = DropZone.goList[Drops].GetComponent<CardController>().textData;
-                }
+                line.lineColor = DropZone.goList[i].GetComponent<Image>().color;
+                line.textData = DropZone.goList[i].GetComponent<CardController>().textData;
                 lineCount.Add(line);
             }
-        }else if(Drops > DropZone.goList.Count) {
-            Drops--;
         }
-      
+
+        for (int i = 0; i < tempDropZoneItems.Count; i++)
+        {
+            if (!DropZone.goList.Contains(tempDropZoneItems[i]))
+            {
+                lineCount.RemoveAt(i);
+                tempDropZoneItems.RemoveAt(i);
+            }
+        }
     }
 
     void CreateGraphs(int count)
@@ -80,6 +84,7 @@ public class GraphController : MonoBehaviour {
                 Graph goGraph = go.GetComponent<Graph>();
                 goGraph.GetComponent<LineRenderer>().SetPositions(lineCount[graphs].lineData.ToArray());
                 lineCount[graphs].lineData.AddRange(new Vector3[1000]);
+                goGraph.LineWidth = 2f;
                 goList.Add(goGraph);
             }
             tempLineCount = count;
@@ -99,11 +104,9 @@ public class GraphController : MonoBehaviour {
     void UpdateGraphs()
     {
         for (int i = 0; i < lineCount.Count; i++)
-        {
-            goList[i].LinePoints = lineCount[i].lineData;
-
-            lineCount[i].lineWidth = (lineCount[i].lineWidth == 0) ? 2.0f : lineCount[i].lineWidth;
-
+        {            
+            if (lineCount[i].lineWidth != goList[i].LineWidth)
+                goList[i].LineWidth = lineCount[i].lineWidth;
             if (lineCount[i].lineWidth != goList[i].LineWidth)
                 goList[i].LineWidth = lineCount[i].lineWidth;
             if (lineCount[i].lineColor != goList[i].Color)
@@ -115,6 +118,8 @@ public class GraphController : MonoBehaviour {
             if (lineCount[i].lineDepth != goList[i].GraphDepth)
                 goList[i].GraphDepth = lineCount[i].lineDepth;
         }
+
+        //DropZone.gameObject.GetComponentsInChildren(GameObject);
     }
 
     private void lineDataUpdate()
@@ -123,29 +128,22 @@ public class GraphController : MonoBehaviour {
         for (int i = 0; i < lineCount.Count; i++)
         {
             // We gaan alleen door als er geen textDataAvailable is
-            if (lineCount[i].textDataAvailable == false)
+            if (lineCount[i].textData && lineCount[i].textData != lineCount[i].tempTextData)
             {
+                Debug.Log("hoe vaak kom ik hier!");
                 // We gaan nu langs alle lines hun lijn data.
                 for (int x = 0; x < lineCount[i].lineData.Count; x++)
                 {
-                    // we lezen deze code alleen als er een textdata bestand aanwezig is
-                    if (lineCount[i].textData)
+                    List<double> newlist = TextSeperator(lineCount[i].textData);
+                    for (int nL = 0; nL < newlist.Count; nL++)
                     {
-                        List<double> newlist = TextSeperator(lineCount[i].textData);
-                        for (int nL = 0; nL < newlist.Count; nL++)
-                        {
-                            float valueY = (float)newlist[nL];
-                            lineCount[i].lineData[nL] = new Vector3(lineCount[i].lineData[nL].x, valueY, lineCount[i].lineData[nL].z);
-                        }
-                        
-                        lineCount[i].tempTextData = lineCount[i].textData;
-                        lineCount[i].textDataAvailable = true;
+                        float valueY = (float)newlist[nL];
+                        lineCount[i].lineData[nL] = new Vector3(nL * 10, valueY, lineCount[i].lineData[nL].z);
                     }
-                    lineCount[i].lineData[x] = new Vector3(25 * x, lineCount[i].lineData[x].y, lineCount[i].lineData[x].z);
+
+                    lineCount[i].tempTextData = lineCount[i].textData;
                 }
-            }else if (!lineCount[i].textData || lineCount[i].textData != lineCount[i].tempTextData)
-            {
-                lineCount[i].textDataAvailable = false;
+                goList[i].LinePoints = lineCount[i].lineData;
             }
         }
     }
