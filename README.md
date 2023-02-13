@@ -1,4 +1,5 @@
-# unity3d-graphtool
+# Welcome to graphtool-unity3d! ✨
+
 This tool returns your data into graphs!
 
 As show below the graph is very flexible in the unity3d inspector.
